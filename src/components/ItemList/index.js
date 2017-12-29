@@ -1,39 +1,39 @@
 import React from 'react';
+import { connect} from 'react-redux';
+import { itemsFetchData} from '../../actions/items';
 
-export default class ItemList extends React.Component {
-  state = {
-    isLoading: false,
-    hasErrored: false,
-    items: []
-  };
+class ItemList extends React.Component {
   componentDidMount = () => {
-    this.fetchData('http://5826ed963900d612000138bd.mockapi.io/items');
-  };
-  fetchData = url => {
-    this.setState( { isLoading: true});
-    fetch( url)
-    .then( response => {
-      if( !response.ok){
-        throw Error( response.statusText);
-      }
-      this.setState( { isLoading: false});
-      return response
-    })
-    .then( response => response.json())
-    .then( items => this.setState( { items}))
-    .catch( () => this.setState({ hasErrored: true}))
+    this.props.fetchData('http://5826ed963900d612000138bd.mockapi.io/items');
   };
   render = () => {
-    if( this.state.hasErrored){
+    const {hasErrored, isLoading, items} = this.props;
+    if( hasErrored){
       return <p>Sorry the data fetch failed</p>
     }
-    if( this.state.isLoading){
+    if( isLoading){
       return <p>Loading...</p>;
     }
     return (
       <ul>
-        {this.state.items.map( item => <li key={item.id}>{item.label}</li> )}
+        {items.map( item => <li key={item.id}>{item.label}</li> )}
       </ul>
     );
   };
 };
+
+const mapStateToProps = (state) => {
+  return {
+    items: state.items,
+    hasErrored: state.itemsHasErrored,
+    isLoading: state.itemsIsLoading
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    fetchData: (url) => dispatch( itemsFetchData(url))
+  };
+};
+
+export default connect( mapStateToProps, mapDispatchToProps)(ItemList);
